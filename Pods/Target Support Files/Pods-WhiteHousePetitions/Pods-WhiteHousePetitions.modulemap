@@ -1,0 +1,6 @@
+framework module Pods_WhiteHousePetitions {
+  umbrella header "Pods-WhiteHousePetitions-umbrella.h"
+
+  export *
+  module * { export * }
+}
