@@ -22,16 +22,30 @@ import SwiftyJSON
         }else {
              urlString =  "https://api.whitehouse.gov/v1/petitions.json?signatureCountFloor=10000&limit=100"
         }
+        
+        
+        // .userInteractive queue 0
+        // .userInitiated queue 1
+        // .utility queue 2
+        // .background queue 3
+        DispatchQueue.global(qos: .userInitiated).async {
+            
+            // start with unowned self to avoid strong reference cycles
+            [unowned self]  in
+            
             if let url = URL(string: urlString) {
-            if let data = try? Data(contentsOf: url) {
-                let json = JSON(data: data)
-                
-                if json["metadata"]["responseInfo"]["status"].intValue == 200 {
-                    // we're OK to parse!
-                    parse(json: json)
-                    return
+                if let data = try? Data(contentsOf: url) {
+                    let json = JSON(data: data)
+                    
+                    if json["metadata"]["responseInfo"]["status"].intValue == 200 {
+                        // we're OK to parse!
+                        self.parse(json: json)
+                        return
+                    }
                 }
-            }
+            
+        }
+        
         }
         showError()
     }
@@ -51,13 +65,24 @@ import SwiftyJSON
             petitions.append(obj)
         }
         
-        tableView.reloadData()
+        DispatchQueue.main.async {
+            [unowned self] in
+            
+            self.tableView.reloadData()
+
+        }
     }
 
     func showError() {
-        let ac = UIAlertController(title: "Loading error", message: "There was a problem loading the feed; please check your connection and try again.", preferredStyle: .alert)
-        ac.addAction(UIAlertAction(title: "OK", style: .default))
-        present(ac, animated: true)
+        
+        DispatchQueue.main.async {
+            
+            [unowned self] in
+            let ac = UIAlertController(title: "Loading error", message: "There was a problem loading the feed; please check your connection and try again.", preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "OK", style: .default))
+            self.present(ac, animated: true)
+        }
+
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
